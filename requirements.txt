@@ -1,0 +1,10 @@
+# local package
+-e .
+
+# external requirements
+pandas
+numpy
+scipy
+matplotlib
+seaborn
+sklearn
