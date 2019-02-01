@@ -62,7 +62,7 @@ ts_amnt <- ggplot(amnt_df,
 ts_amnt + geom_line() + xlab("Date issued")
 
 time_df <- loans %>% 
-  select(issue_d, loan_amnt)
+  select(issue_d, loan_amnt,default)
 head(time_df)
 
 time_df$issue_month<-substr(time_df$issue_d,6,7)
@@ -97,6 +97,37 @@ geom_point(size=2)+
 theme(legend.position="")+
 scale_y_log10()+
 labs(x="Year",y="Amount",title="Loans processed in each Year")
+
+options(repr.plot.width=5, repr.plot.height=4,scipen=9)
+time_df2 <- time_df %>% 
+  select(default, issue_year) %>% 
+  group_by(default,issue_year) %>% 
+  summarise(Count = n())
+time_df2$default_fac<- factor(time_df2$default,labels=c("Paid Off", "Defaulted"))
+time_df2 %>% ggplot(aes(default_fac,Count)) +
+geom_bar(stat="identity",position="dodge")+
+scale_fill_manual(values=c("#732ded","#33c14b"))+
+facet_wrap(~issue_year)
+
+
+
+time_df3_0 <- time_df2 %>%select(default,issue_year,Count)%>%
+filter(default==0)%>%mutate(PaidOff = Count)
+time_df3_1 <- time_df2 %>%select(default,issue_year,Count)%>%
+filter(default==1)%>%mutate(Defaulted = Count)
+
+
+time_df3_sums <-inner_join(time_df3_0,time_df3_1,by ="issue_year" )%>%select(issue_year,PaidOff,Defaulted)
+
+
+time_df3_sums%>%
+gather(key=default,measure,PaidOff,Defaulted)%>%
+ggplot(aes(x=issue_year,y=measure,group=default,fill=default))+
+geom_bar(stat="identity",position="dodge")+
+scale_fill_manual(values=c("#732ded","#33c14b"))+
+labs(title="PaidOff vs Defaulted Loans")
+
+
 
 state_by_value <-
 loans %>%rename(region = full_state) %>%mutate(region=tolower(region))%>% group_by(region) %>%
