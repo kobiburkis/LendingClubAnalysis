@@ -4,6 +4,8 @@ if(!require(DBI)){install.packages("DBI"); require(DBI)}
 if(!require(RSQLite)){install.packages("RSQLite"); require(RSQLite)}
 if(!require(dplyr)){install.packages("dplyr"); require(dplyr)}
 if(!require(funModeling)){install.packages("funModeling"); require(funModeling)}
+if(!require(ggpubr)){install.packages("ggpubr"); require(ggpubr)}
+if(!require(nortest)){install.packages("nortest"); require(nortest)}
 
 ##############################################################################
 ##########                DATABASE FUNCTIONS                     #############
@@ -126,20 +128,19 @@ hist(loans$mths_since_last_delinq)
 loans$open_acc_rt<- loans$open_acc^0.5
 hist(loans$open_acc_rt)
 hist(loans$open_acc)
-
+transform_var<-"open_acc_rt"
 
 loans$total_acc_rt<- loans$total_acc^0.5
 hist(loans$total_acc_rt)
 hist(loans$total_acc)
-
+transform_var<-c(transform_var,"total_acc_rt")
 
 ##transformations
 loans$annual_inc_log<- log(loans$annual_inc)
 loans$annual_inc_rt<-(loans$annual_inc)^0.5
 hist(loans$annual_inc_log)
 hist(loans$annual_inc_rt)
-
-
+transform_var<-c(transform_var,"annual_inc_log","annual_inc_rt" )
 
 summary(loans$annual_inc)
 
@@ -159,6 +160,7 @@ loans$revol_bal_rt <-loans$revol_bal^0.5
 
 hist(loans$revol_bal)
 hist(loans$revol_bal_rt)
+transform_var<-c(transform_var,"revol_bal_rt" )
 
 ## transformations
 loans$credit_hist_log <-log(loans$credit_hist)
@@ -167,6 +169,7 @@ loans$credit_hist_rt <-loans$credit_hist^0.5
 hist(loans$credit_hist)
 hist(loans$credit_hist_log)
 hist(loans$credit_hist_rt)
+transform_var<-c(transform_var,"credit_hist_log","credit_hist_rt"  )
 
 summary(loans$credit_hist)
 
@@ -183,6 +186,15 @@ loans$credit_hist_grp<-factor(loans$credit_hist_grp)
 head(loans)
 
 dim(loans)
+
+for (tv in transform_var)  {
+    print(tv)
+        print(ad.test(loans[,tv]))
+}
+
+for (tv in tranform_var)  {
+        print(ggqqplot(loans[,tv],title = tv))
+}
 
 ##SQLLite Converts the date to numeric so imlilictly apply as.character on date columns
 loans$issue_d <- as.character(loans$issue_d)
